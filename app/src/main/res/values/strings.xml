@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">ExpensesWe</string>
+    <string name="sign_in_name">LogIn</string>
+    <string name="sign_up_name">SignUp</string>
+    <string name="home_name">Home</string>
+    <string name="settings_name">Profile</string>
+    <string name="splash_name">Splash</string>
+    <string name="details_name">Other Details</string>
+    <string name="add_expense_name">Expense Name</string>
+    <string name="add_expense_amount_name">Expense Amount</string>
+    <string name="bar_chart_name">Bar Chart</string>
+    <string name="pie_chart_name">Pie Chart</string>
+</resources>

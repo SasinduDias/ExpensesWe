@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "730651829192",
+    "project_id": "expensewe-ba167",
+    "storage_bucket": "expensewe-ba167.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:730651829192:android:aa87f8c2cad262196896fd",
+        "android_client_info": {
+          "package_name": "com.sasindu.personaldetailsapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhDKwDoqx5IX5jD1gPEOJC-W2OW3SV9vE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
