@@ -790,14 +790,14 @@ fun findDrawable(category: String?): Painter {
 
     when (category) {
 
-        "Food" -> return painterResource(R.drawable.background_tree)
-        "Transport" -> return painterResource(R.drawable.background_tree)
-        "Bank Charges" -> return painterResource(R.drawable.background_tree)
-        "Insurance" -> return painterResource(R.drawable.background_tree)
-        "Rent" -> return painterResource(R.drawable.background_tree)
-        "Bills" -> return painterResource(R.drawable.background_tree)
-        "Repairs" -> return painterResource(R.drawable.background_tree)
-        "Other" -> return painterResource(R.drawable.background_tree)
+        "Food" -> return painterResource(R.drawable.food)
+        "Transport" -> return painterResource(R.drawable.transport)
+        "Bank Charges" -> return painterResource(R.drawable.bank_chargers)
+        "Insurance" -> return painterResource(R.drawable.insurance)
+        "Rent" -> return painterResource(R.drawable.rent)
+        "Bills" -> return painterResource(R.drawable.bills)
+        "Repairs" -> return painterResource(R.drawable.repairs)
+        "Other" -> return painterResource(R.drawable.others)
         else -> return painterResource(R.drawable.logo)
 
     }
