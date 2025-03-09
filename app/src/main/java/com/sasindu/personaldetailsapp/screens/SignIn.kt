@@ -111,13 +111,13 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 LaunchedEffect(authState.value) {
                     when (authState.value) {
                         is AuthState.Authenticated -> navController.navigate(MainActivity.Routes.Home.name)
-                        is AuthState.Error ->
-                            Toasty.error(
-                                context,
-                                (authState.value as AuthState.Error).message,
-                                Toast.LENGTH_SHORT,
-                                true
-                            ).show()
+//                        is AuthState.Error ->
+//                            Toasty.error(
+//                                context,
+//                                (authState.value as AuthState.Error).message,
+//                                Toast.LENGTH_SHORT,
+//                                true
+//                            ).show()
 
                         else -> Unit
                     }
@@ -141,7 +141,7 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 LoginFooter(
                     onSignInClick = {
                         if (isConnected) {
-                            authViewModel.login(email.value, password.value)
+                            authViewModel.login(email.value, password.value,context)
                         } else {
                             Toasty.warning(
                                 context,

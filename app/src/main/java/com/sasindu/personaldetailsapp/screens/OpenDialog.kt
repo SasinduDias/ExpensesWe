@@ -95,13 +95,13 @@ fun OpenDialog(
             onValueChange = { monthlyIncome = it },
             modifier = Modifier.fillMaxWidth(),
 
-            label = { Text(text = "Monthly Income") },
+            label = { Text(text = "Enter Your Monthly Income") },
             placeholder = { Text(text = "Monthly Income") },
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal
+                keyboardType = KeyboardType.Number
             ),
-            leadingIcon = {
+            trailingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Money,
                     contentDescription = "",
@@ -109,6 +109,14 @@ fun OpenDialog(
             },
 
             )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            textAlign = TextAlign.Center,
+            text = "Click the button below to view your monthly expenses categorized by type",
+            fontWeight = FontWeight.Bold,
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -121,7 +129,7 @@ fun OpenDialog(
                 }
             }
         ) {
-            Text(text = "View Summary",fontSize = 18.sp, modifier = Modifier.padding(8.dp))
+            Text(text = "View Summary", fontSize = 18.sp, modifier = Modifier.padding(8.dp))
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -161,37 +169,43 @@ fun CallCategoryExpensesLazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        if (monthlyIncome.isNotEmpty() && (monthlyIncome.toFloat() > totalExpenses)) {
+        if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+            && (monthlyIncome.toFloat() > totalExpenses)
+        ) {
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Total Gain : ")
+                Text(text = "Financial Gain : ")
                 Text(
-                    text = (monthlyIncome.toFloat() - totalExpenses).toString() + " LKR",
+                    text = (monthlyIncome.toFloat() - totalExpenses).toString(),
                     color = Color.Green,
                     fontWeight = FontWeight.Bold
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-        } else if (monthlyIncome.isNotEmpty() && (monthlyIncome.toFloat() < totalExpenses)) {
+        } else if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+            && (monthlyIncome.toFloat() < totalExpenses)
+        ) {
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Total Loss : ")
+                Text(text = "Financial Decline : ")
                 Text(
-                    text = (totalExpenses - monthlyIncome.toFloat()).toString() + " LKR",
+                    text = (totalExpenses - monthlyIncome.toFloat()).toString(),
                     color = Color.Red,
                     fontWeight = FontWeight.Bold
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-        } else if (monthlyIncome.isNotEmpty() && (monthlyIncome.toFloat() == totalExpenses)) {
+        } else if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+            && (monthlyIncome.toFloat() == totalExpenses)
+        ) {
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
                 Text(text = "Total Balance: ")
                 Text(
-                    text = "0 LKR",
+                    text = "0",
                     color = Color.Blue,
                     fontWeight = FontWeight.Bold
                 )
@@ -212,9 +226,10 @@ fun CallCategoryExpensesLazyColumn(
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row (
+                        Row(
                             horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically) {
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
                                 text = category,
                                 fontWeight = FontWeight.Bold,
@@ -233,7 +248,7 @@ fun CallCategoryExpensesLazyColumn(
                         }
 
                         Text(
-                            text = "$sum LKR",
+                            text = "$sum",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = Color.Blue

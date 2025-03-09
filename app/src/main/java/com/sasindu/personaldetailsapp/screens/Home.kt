@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Home
@@ -464,7 +465,8 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     var openAlertDialogForRemoveDetails by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-   if (!showSummary) { Column(
+   if (!showSummary) {
+       Column(
         modifier = Modifier
             .padding(16.dp, 16.dp),
         verticalArrangement = Arrangement.Top,
@@ -515,7 +517,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.Center
             ) {
                 IconButton(
                     onClick = {
@@ -582,7 +584,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.DeleteSweep,
+                        imageVector = Icons.Default.DeleteForever,
                         contentDescription = "remove",
                         tint = Color.Black
                     )
@@ -649,7 +651,7 @@ fun SetupGraphs(courseList: SnapshotStateList<Expenses?>) {
 
 
     PieChart(
-        modifier = Modifier.padding(20.dp),
+        modifier = Modifier.padding(10.dp),
         colors = chartColors.take(chartValues.size),
         inputValues = chartValues.map { it.toFloat() },
         textColor = MaterialTheme.colorScheme.primary
@@ -801,7 +803,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
 
                             courseList[index]?.amount?.let {
                                 Text(
-                                    text = it + " LKR",
+                                    text = it,
                                     modifier = Modifier.padding(4.dp),
                                     color = Color.Black,
                                     textAlign = TextAlign.Center,
@@ -1183,7 +1185,7 @@ fun SetupBarChart(courseList: SnapshotStateList<Expenses?>) {
     val labels: List<String> = categorySumMap.keys.toList()
 
     BarChart(
-        modifier = Modifier.padding(20.dp),
+        modifier = Modifier.padding(10.dp),
         colors = chartColors.take(chartValues.size),
         inputValues = chartValues,
         labels = labels,

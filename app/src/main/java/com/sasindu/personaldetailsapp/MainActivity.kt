@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
         val authViewModel = AuthViewModel()
 
         LaunchedEffect(Unit) {
-            authViewModel.refreshUser() // Update user state when logging in/out
+            authViewModel.refreshUser()
         }
         NavHost(
             navController,

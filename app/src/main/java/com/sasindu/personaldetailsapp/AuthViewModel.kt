@@ -36,21 +36,43 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String,context: Context) {
         val emailPattern = PatternsCompat.EMAIL_ADDRESS
 
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password can't be empty")
+            Toasty.error(
+                context,
+                "Email or password can't be empty",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
             return
         }
 
         if (!emailPattern.matcher(email).matches()) {
             _authState.value = AuthState.Error("Please add valid email !")
+            Toasty.error(
+                context,
+                "Please add valid email !",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
             return
         }
 
+           if(password.length < 6 ){
+               Toasty.error(
+                   context,
+                   "Password must be at least 6 characters long",
+                   Toast.LENGTH_SHORT,
+                   true
+               ).show()
+               return
+           }
+
         _authState.value = AuthState.Loading
-        auth.signInWithEmailAndPassword(email, password)
+        auth.signInWithEmailAndPassword(email, password.replace("\\s".toRegex(), "") )
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     _authState.value = AuthState.Authenticated
@@ -59,23 +81,55 @@ class AuthViewModel : ViewModel() {
                         AuthState.Error(task.exception?.message ?: "Something went wrong")
                 }
             }
+
+        if ( _authState.value !is AuthState.Authenticated){
+            Toasty.error(
+                context,
+                "Something went wrong!",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
+        }
     }
 
 
-    fun signup(email: String, password: String) {
+    fun signup(email: String, password: String,context: Context) {
         val emailPattern = PatternsCompat.EMAIL_ADDRESS
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password can't be empty")
+            Toasty.error(
+                context,
+                "Email or password can't be empty",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
             return
         }
 
         if (!emailPattern.matcher(email).matches()) {
             _authState.value = AuthState.Error("Please add valid email !")
+            Toasty.error(
+                context,
+                "Please add valid email !",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
             return
         }
 
+        if(password.length < 6 ){
+            Toasty.error(
+                context,
+                "Password must be at least 6 characters long",
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
+            return
+        }
+
+
         _authState.value = AuthState.Loading
-        auth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, password.replace("\\s".toRegex(), "") )
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     _authState.value = AuthState.Authenticated
@@ -84,6 +138,15 @@ class AuthViewModel : ViewModel() {
                         AuthState.Error(task.exception?.message ?: "Something went wrong")
                 }
             }
+
+        if ( _authState.value !is AuthState.Authenticated){
+            Toasty.error(
+                context,
+                _authState.value.toString(),
+                Toast.LENGTH_SHORT,
+                true
+            ).show()
+        }
     }
 
     fun sendEmailVerification(

@@ -70,7 +70,7 @@ fun SettingScreen(
     var openAlertDialog by remember { mutableStateOf(false) }
     val emailPattern = PatternsCompat.EMAIL_ADDRESS
 
-    if (authState.value is AuthState.Unauthenticated) {
+    if (authState.value !is AuthState.Authenticated) {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(R.drawable.background_four),
@@ -213,7 +213,7 @@ fun SettingScreen(
             }
 
 
-            if (authState.value is AuthState.Unauthenticated) {
+            if (authState.value !is AuthState.Authenticated) {
                 TextButton(
                     modifier = Modifier.paddingFromBaseline(top = 50.dp),
                     onClick = {
