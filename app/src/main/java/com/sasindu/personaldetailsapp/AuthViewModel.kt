@@ -1,14 +1,17 @@
 package com.sasindu.personaldetailsapp
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.util.PatternsCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import es.dmoral.toasty.Toasty
 
 class AuthViewModel : ViewModel() {
@@ -124,6 +127,38 @@ class AuthViewModel : ViewModel() {
     fun refreshUser() {
         firebaseUser = auth.currentUser // Update state when new user logs in
     }
+
+    @SuppressLint("SuspiciousIndentation")
+    fun getUserEligibleExpenses(
+        context: Context,
+        onResult: (SnapshotStateList<Expenses?>) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        val authViewModelForUser = AuthViewModel()
+        val courseList = SnapshotStateList<Expenses?>()
+
+        db.collection("Expenses")
+            .whereEqualTo("email", authViewModelForUser.firebaseUser?.email.toString())
+            .get()
+            .addOnSuccessListener { queryDocumentSnapshots ->
+                if (!queryDocumentSnapshots.isEmpty) {
+                    val list = queryDocumentSnapshots.documents
+                    courseList.clear()
+                    for (d in list) {
+                        val expense: Expenses? = d.toObject(Expenses::class.java)
+                        expense?.let { courseList.add(it) }
+                    }
+                } else {
+                    Toasty.warning(context, "No data found!", Toast.LENGTH_SHORT, true).show()
+                }
+                onResult(courseList) // Callback with updated data
+            }
+            .addOnFailureListener { e ->
+                Toasty.error(context, "Failed to get data!", Toast.LENGTH_SHORT, true).show()
+                onResult(courseList) // Return empty list on failure
+            }
+    }
+
 }
 
 sealed class AuthState {

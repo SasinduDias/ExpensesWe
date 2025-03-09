@@ -1,6 +1,7 @@
 package com.sasindu.personaldetailsapp
 
 import HomeScreen
+import OpenDialog
 import SettingScreen
 import SignInScreen
 import SignUpScreen
@@ -14,6 +15,10 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -89,6 +94,6 @@ class MainActivity : ComponentActivity() {
         SignUp(title = R.string.sign_up_name),
         Home(title = R.string.home_name),
         Splash(title = R.string.settings_name),
-        Settings(title = R.string.settings_name),
+        Settings(title = R.string.settings_name)
     }
 }

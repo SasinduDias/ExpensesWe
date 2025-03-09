@@ -34,13 +34,17 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.NoteAlt
@@ -92,6 +96,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.DeleteAllCommand
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -147,7 +152,7 @@ fun HomeScreen(
         ) {
             when (selectedItem) {
                 0 -> HomeContent(authViewModel)
-                1 -> SummaryContent()
+                1 -> SummaryContent(authViewModel,navController)
                 2 -> SettingContent(authViewModel, navController)
             }
         }
@@ -273,7 +278,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
                         contextHome,
                         authViewModel
                     ) {
-                        // ✅ Reset fields after saving
+                        // Reset fields after saving
                         expenseName = ""
                         expenseAmount = ""
                         selectedDateText = ""
@@ -354,7 +359,8 @@ fun DatePickerFieldToModal(
 
     OutlinedTextField(
         value = selectedDate?.let { convertMillisToDate(it) } ?: selectedDateText,
-        onValueChange = { },
+        onValueChange = {
+        },
         label = { Text("Date") },
         placeholder = { Text("MM/DD/YYYY") },
         trailingIcon = {
@@ -450,11 +456,15 @@ fun SettingContent(authViewModel: AuthViewModel, navController: NavController) {
 }
 
 @Composable
-fun SummaryContent() {
+fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     val authViewModelForUser = AuthViewModel()
     var barChartSelected by remember { mutableStateOf(true) }
+    var showSummary by remember { mutableStateOf(false) }
+    var summaryDialogDismiss by remember { mutableStateOf(false) }
+    var openAlertDialogForRemoveDetails by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
-    Column(
+   if (!showSummary) { Column(
         modifier = Modifier
             .padding(16.dp, 16.dp),
         verticalArrangement = Arrangement.Top,
@@ -549,6 +559,52 @@ fun SummaryContent() {
                     }
 
                 }
+                Spacer(Modifier.width(10.dp))
+
+                IconButton(
+                    onClick = {
+                        showSummary=true
+                     //   navController.navigate(MainActivity.Routes.OpenDialog.name)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Summarize,
+                        contentDescription = "info summary",
+                        tint = Color.Black
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                IconButton(
+                    onClick = {
+                        openAlertDialogForRemoveDetails = true
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteSweep,
+                        contentDescription = "remove",
+                        tint = Color.Black
+                    )
+
+                    if (openAlertDialogForRemoveDetails) {
+                        AlertDialogExample(
+                            onDismissRequest = { openAlertDialogForRemoveDetails = false },
+                            onConfirmation = {
+                                openAlertDialogForRemoveDetails = false
+                                coroutineScope.launch {
+                                    deleteAllExpenses(
+                                        courseList,
+                                        context
+                                    )
+                                }
+                            },
+                            dialogTitle = "Warning",
+                            dialogText = "This will permanently delete all items. Are you sure you want to continue?",
+                            icon = Icons.Default.Warning
+                        )
+                    }
+                }
             }
 
 
@@ -559,7 +615,12 @@ fun SummaryContent() {
             }
             firebaseUI(LocalContext.current, courseList)
         }
-    }
+    }}else{
+        OpenDialog(
+            authViewModel,
+            onDismiss ={summaryDialogDismiss=false})
+
+   }
 
 }
 
@@ -652,8 +713,8 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                         painter = findDrawable(courseList[index]?.category),
                                         contentDescription = "",
                                         modifier = Modifier
-                                            .height(20.dp)
-                                            .width(20.dp)
+                                            .height(25.dp)
+                                            .width(25.dp)
                                             .clip(shape = CircleShape)
                                     )
                                 }
@@ -839,6 +900,50 @@ suspend fun DeleteItem(
     }
 
 
+}
+
+suspend fun deleteAllExpenses(
+    courseList: SnapshotStateList<Expenses?>,
+    context: Context
+) {
+    val db = FirebaseFirestore.getInstance()
+
+    db.collection("Expenses")
+        .whereEqualTo("email", AuthViewModel().firebaseUser?.email.toString()) // Delete only the logged-in user's expenses
+        .get()
+        .addOnSuccessListener { querySnapshot ->
+            if (!querySnapshot.isEmpty) {
+                val batch = db.batch()
+
+                for (document in querySnapshot.documents) {
+                    batch.delete(document.reference)
+                }
+
+                batch.commit()
+                    .addOnSuccessListener {
+                        Toasty.success(context, "All expenses deleted successfully!", Toast.LENGTH_SHORT).show()
+
+                        // Clear the local list
+                        courseList.clear()
+                    }
+                    .addOnFailureListener { e ->
+                        Toasty.error(
+                            context,
+                            "Failed to delete all expenses: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+            } else {
+                Toasty.warning(context, "No expenses found to delete!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        .addOnFailureListener { e ->
+            Toasty.error(
+                context,
+                "Error fetching expenses: ${e.message}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
 }
 
 
