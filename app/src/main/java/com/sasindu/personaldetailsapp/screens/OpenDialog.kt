@@ -17,10 +17,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Money
@@ -81,7 +83,7 @@ fun OpenDialog(
 
         Text(
             text = "Monthly Budget Tracker",
-            color = Color.Blue,
+            color =Color(0xFF205781),
             fontFamily = FontFamily.SansSerif,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
@@ -103,11 +105,11 @@ fun OpenDialog(
             ),
             trailingIcon = {
                 Icon(
-                    imageVector = Icons.Filled.Money,
+                    imageVector = Icons.Filled.CreditCard,
                     contentDescription = "",
                 )
             },
-
+            shape = RoundedCornerShape(15.dp)
             )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -122,6 +124,7 @@ fun OpenDialog(
 
         Button(
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(15.dp) ,
             onClick = {
                 authViewModel.getUserEligibleExpenses(context) { fetchedExpenses ->
                     expensesList.clear()
@@ -175,10 +178,12 @@ fun CallCategoryExpensesLazyColumn(
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Financial Gain : ")
+                Text(text = "Financial Gain : "
+                , color =  Color(0xFF205781),
+                    fontWeight = FontWeight.Bold)
                 Text(
                     text = (monthlyIncome.toFloat() - totalExpenses).toString(),
-                    color = Color.Green,
+                    color = Color(0xFF0b7826),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -189,7 +194,9 @@ fun CallCategoryExpensesLazyColumn(
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Financial Decline : ")
+                Text(text = "Financial Decline : ",
+                    color =  Color(0xFF205781),
+                    fontWeight = FontWeight.Bold)
                 Text(
                     text = (totalExpenses - monthlyIncome.toFloat()).toString(),
                     color = Color.Red,
@@ -203,7 +210,9 @@ fun CallCategoryExpensesLazyColumn(
             Row(
                 Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Total Balance: ")
+                Text(text = "Total Balance: ",
+                    color =  Color(0xFF205781),
+                    fontWeight = FontWeight.Bold)
                 Text(
                     text = "0",
                     color = Color.Blue,
@@ -233,7 +242,8 @@ fun CallCategoryExpensesLazyColumn(
                             Text(
                                 text = category,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                fontSize = 16.sp,
+                                color = Color(0xFF205781)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Image(
@@ -251,7 +261,7 @@ fun CallCategoryExpensesLazyColumn(
                             text = "$sum",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = Color.Blue
+                            color =  Color(0xFF205781)
                         )
                     }
                 }

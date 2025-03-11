@@ -2,6 +2,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -54,7 +56,7 @@ import es.dmoral.toasty.Toasty
 
 
 @Composable
-fun SignUpScreen(navController:NavController, authViewModel: AuthViewModel) {
+fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
     val scrollState = rememberScrollState()
     var context: Context = LocalContext.current
     val networkObserver = remember { NetworkObserver(context) }
@@ -74,7 +76,9 @@ fun SignUpScreen(navController:NavController, authViewModel: AuthViewModel) {
 
     Column(
         modifier = Modifier
-            .padding(10.dp).fillMaxWidth().fillMaxHeight()
+            .padding(10.dp)
+            .fillMaxWidth()
+            .fillMaxHeight()
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -94,12 +98,12 @@ fun SignUpScreen(navController:NavController, authViewModel: AuthViewModel) {
                 )
                 .background(MaterialTheme.colorScheme.background)
                 .wrapContentHeight()
-        ){
+        ) {
             Column(
-                modifier = Modifier.padding(48.dp),
+                modifier = Modifier.padding(30.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            ) {
                 val email = remember { mutableStateOf("") }
                 val password = remember { mutableStateOf("") }
                 val authState = authViewModel.authState.observeAsState()
@@ -130,12 +134,12 @@ fun SignUpScreen(navController:NavController, authViewModel: AuthViewModel) {
                         password.value = it
                     },
 
-                )
+                    )
                 SignUpFooter(
                     onSignUpClick = {
                         if (isConnected) {
-                            authViewModel.signup(email.value, password.value,context)
-                        }else{
+                            authViewModel.signup(email.value, password.value, context)
+                        } else {
                             Toasty.warning(
                                 context,
                                 "No Internet Connection",
@@ -156,8 +160,10 @@ fun SignUpScreen(navController:NavController, authViewModel: AuthViewModel) {
 }
 
 @Composable
-fun SignUpFooter(onSignUpClick:() -> Unit,
-                onSignInClick: () -> Unit) {
+fun SignUpFooter(
+    onSignUpClick: () -> Unit,
+    onSignInClick: () -> Unit
+) {
 
     Spacer(Modifier.height(20.dp))
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -174,8 +180,18 @@ fun SignUpFooter(onSignUpClick:() -> Unit,
 @Composable
 fun SignUpTitle() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Welcome", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold)
-        Text(text = "Sign up to continue", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "Welcome",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (!isSystemInDarkTheme()) Color.Black else Color.White
+        )
+        Text(
+            text = "Sign up to continue",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (!isSystemInDarkTheme()) Color.Black else Color.White
+        )
     }
 }
 

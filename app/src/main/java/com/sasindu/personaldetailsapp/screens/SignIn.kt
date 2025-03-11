@@ -2,6 +2,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -99,7 +102,7 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 .wrapContentHeight()
         ) {
             Column(
-                modifier = Modifier.padding(48.dp),
+                modifier = Modifier.padding(30.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -259,12 +262,13 @@ fun SignInHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Welcome", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center , color =  if (!isSystemInDarkTheme()) Color.Black else Color.White
         )
         Text(
             text = "Back", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center ,color =  if (!isSystemInDarkTheme()) Color.Black else Color.White
         )
-        Text(text = "Login to continue", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = "Login to continue", fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,color =  if (!isSystemInDarkTheme()) Color.Black else Color.White)
     }
 }

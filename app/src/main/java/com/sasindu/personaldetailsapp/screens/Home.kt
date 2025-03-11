@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -64,6 +66,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -228,7 +231,8 @@ fun HomeContent(authViewModel: AuthViewModel) {
         //date picker
         DatePickerFieldToModal(
             selectedDateText = selectedDateText,
-            onDateTextChange = { newDate -> selectedDateText = newDate }
+            onDateTextChange = { newDate -> selectedDateText = newDate },
+            resetSelectedDate = selectedDateText.isEmpty()
         )
 
         //space
@@ -275,7 +279,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
                         expenseName,
                         expenseAmount,
                         selectedDateText,
-                        selectedCategoryText,
+                         selectedCategoryText,
                         contextHome,
                         authViewModel
                     ) {
@@ -291,7 +295,9 @@ fun HomeContent(authViewModel: AuthViewModel) {
             // adding modifier to button.
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(top= 16.dp),
+            shape = RoundedCornerShape(15.dp)
+
         ) {
             // on below line we are adding text for our button
             Text(text = "Add Expense", modifier = Modifier.padding(8.dp), fontSize = 18.sp)
@@ -353,10 +359,18 @@ fun addDataToFirebase(
 fun DatePickerFieldToModal(
     selectedDateText: String,
     onDateTextChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    resetSelectedDate: Boolean
 ) {
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var showModal by remember { mutableStateOf(false) }
+
+   LaunchedEffect(resetSelectedDate) {
+       if (resetSelectedDate){
+           selectedDate=null
+           onDateTextChange("")
+       }
+   }
 
     OutlinedTextField(
         value = selectedDate?.let { convertMillisToDate(it) } ?: selectedDateText,
@@ -377,7 +391,8 @@ fun DatePickerFieldToModal(
                         showModal = true
                     }
                 }
-            }
+            },
+                shape = RoundedCornerShape(15.dp)
     )
 
     if (showModal) {
@@ -448,6 +463,7 @@ fun ExpensesTextField(
         trailingIcon = trailingIcon,
         placeholder = placeholder,
         label = label,
+        shape = RoundedCornerShape(15.dp)
     )
 }
 
@@ -474,7 +490,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     ) {
         Text(
             "Expenses Summary",
-            color = Color.Blue,
+            color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
             fontFamily = FontFamily.SansSerif,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
@@ -528,13 +544,13 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                         true -> Icon(
                             imageVector = Icons.Filled.BarChart,
                             contentDescription = "Bar Chart",
-                            tint = Color.Blue
+                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFDD88CF)
                         )
 
                         else -> Icon(
                             imageVector = Icons.Default.BarChart,
                             contentDescription = "Bar Chart",
-                            tint = Color.Black
+                            tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                         )
                     }
                 }
@@ -550,13 +566,13 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                         true -> Icon(
                             imageVector = Icons.Default.PieChart,
                             contentDescription = "Pie Chart",
-                            tint = Color.Black
+                            tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                         )
 
                         else -> Icon(
                             imageVector = Icons.Filled.PieChart,
                             contentDescription = "Pie Chart",
-                            tint = Color.Blue
+                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFDD88CF)
                         )
                     }
 
@@ -572,7 +588,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                     Icon(
                         imageVector = Icons.Default.Summarize,
                         contentDescription = "info summary",
-                        tint = Color.Black
+                        tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                     )
                 }
 
@@ -586,7 +602,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                     Icon(
                         imageVector = Icons.Default.DeleteForever,
                         contentDescription = "remove",
-                        tint = Color.Black
+                        tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                     )
 
                     if (openAlertDialogForRemoveDetails) {
@@ -704,7 +720,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     Text(
                                         text = it,
                                         modifier = Modifier.padding(4.dp),
-                                        color = Color.Black,
+                                        color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
                                         textAlign = TextAlign.Center,
                                         style = TextStyle(
                                             fontSize = 20.sp, fontWeight = FontWeight.Bold
@@ -730,7 +746,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Delete",
-                                        tint = Color.Blue
+                                        tint =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                                     )
 
                                     if (openAlertDialog) {
@@ -764,7 +780,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Category - ",
                                 modifier = Modifier.padding(4.dp),
-                                color = Color.Blue,
+                                color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
@@ -775,7 +791,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color = Color.Black,
+                                    color = if (!isSystemInDarkTheme()) Color.Black else Color.White,
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(
@@ -794,7 +810,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Amount - ",
                                 modifier = Modifier.padding(4.dp),
-                                color = Color.Blue,
+                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
@@ -805,7 +821,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color = Color.Black,
+                                    color =  if (!isSystemInDarkTheme()) Color.Black else Color.White,
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(fontSize = 15.sp)
@@ -822,7 +838,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Date - ",
                                 modifier = Modifier.padding(4.dp),
-                                color = Color.Blue,
+                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
@@ -833,7 +849,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color = Color.Black,
+                                    color =  if (!isSystemInDarkTheme()) Color.Black else Color.White,
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(fontSize = 15.sp)
@@ -989,7 +1005,8 @@ fun DropDown(
             trailingIcon = {
                 Icon(icon, "contentDescription",
                     Modifier.clickable { mExpanded = !mExpanded })
-            }
+            },
+            shape = RoundedCornerShape(15.dp)
         )
 
         DropdownMenu(

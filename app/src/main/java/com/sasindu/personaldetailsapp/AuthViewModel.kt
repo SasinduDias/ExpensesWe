@@ -79,17 +79,16 @@ class AuthViewModel : ViewModel() {
                 } else {
                     _authState.value =
                         AuthState.Error(task.exception?.message ?: "Something went wrong")
+
+                    Toasty.error(
+                        context,
+                        "Please ensure your email and password are correct!",
+                        Toast.LENGTH_SHORT,
+                        true
+                    ).show()
                 }
             }
 
-        if ( _authState.value !is AuthState.Authenticated){
-            Toasty.error(
-                context,
-                "Something went wrong!",
-                Toast.LENGTH_SHORT,
-                true
-            ).show()
-        }
     }
 
 
@@ -136,22 +135,21 @@ class AuthViewModel : ViewModel() {
                 } else {
                     _authState.value =
                         AuthState.Error(task.exception?.message ?: "Something went wrong")
+
+                    Toasty.error(
+                        context,
+                        "Kindly check if your email address is already registered",
+                        Toast.LENGTH_SHORT,
+                        true
+                    ).show()
                 }
             }
-
-        if ( _authState.value !is AuthState.Authenticated){
-            Toasty.error(
-                context,
-                _authState.value.toString(),
-                Toast.LENGTH_SHORT,
-                true
-            ).show()
-        }
     }
 
     fun sendEmailVerification(
         email: String,
-        context: Context
+        context: Context,
+        onSuccess: () -> Unit
     ) {
         _authState.value = AuthState.Loading
         auth.sendPasswordResetEmail(email)
@@ -164,6 +162,7 @@ class AuthViewModel : ViewModel() {
                         Toast.LENGTH_SHORT,
                         true
                     ).show()
+                    onSuccess()
                 } else {
                     _authState.value =
                         AuthState.Error(
@@ -189,6 +188,12 @@ class AuthViewModel : ViewModel() {
 
     fun refreshUser() {
         firebaseUser = auth.currentUser // Update state when new user logs in
+    }
+
+    fun removeAccount() {
+        _authState.value = AuthState.Unauthenticated
+        firebaseUser = null
+        auth.signOut()
     }
 
     @SuppressLint("SuspiciousIndentation")
