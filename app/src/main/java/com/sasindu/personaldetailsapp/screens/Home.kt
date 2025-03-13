@@ -180,7 +180,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
             painter = if (isSystemInDarkTheme())
             painterResource(R.drawable.background_one)
             else
-            painterResource(R.drawable.background_two)   ,
+            painterResource(R.drawable.background_two),
             contentDescription = "background image",
             modifier = Modifier
                 .fillMaxSize(),
