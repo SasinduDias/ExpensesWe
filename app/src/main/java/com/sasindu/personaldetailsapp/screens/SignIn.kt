@@ -114,14 +114,6 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 LaunchedEffect(authState.value) {
                     when (authState.value) {
                         is AuthState.Authenticated -> navController.navigate(MainActivity.Routes.Home.name)
-//                        is AuthState.Error ->
-//                            Toasty.error(
-//                                context,
-//                                (authState.value as AuthState.Error).message,
-//                                Toast.LENGTH_SHORT,
-//                                true
-//                            ).show()
-
                         else -> Unit
                     }
                 }
@@ -130,11 +122,11 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 SignInFields(
                     email.value,
                     password.value,
-                    onEmailChanged = {
-                        email.value = it
+                    onEmailChanged = { input ->
+                        email.value = input.replace("\n", "")
                     },
-                    onPasswordChanged = {
-                        password.value = it
+                    onPasswordChanged = { input ->
+                        password.value = input.replace("\n", "") // Remove Enter key presses
                     },
                     onForgotPasswordClick = {
                         navController.navigate(MainActivity.Routes.Settings.name)
@@ -144,7 +136,7 @@ fun SignInScreen(navController: NavController, authViewModel: AuthViewModel) {
                 LoginFooter(
                     onSignInClick = {
                         if (isConnected) {
-                            authViewModel.login(email.value, password.value,context)
+                            authViewModel.login(email.value, password.value, context)
                         } else {
                             Toasty.warning(
                                 context,
@@ -261,14 +253,24 @@ fun TextField(
 fun SignInHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Welcome", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center , color =  if (!isSystemInDarkTheme()) Color.Black else Color.White
+            text = "Welcome",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center,
+            color = if (!isSystemInDarkTheme()) Color.Black else Color.White
         )
         Text(
-            text = "Back", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold,
-            textAlign = TextAlign.Center ,color =  if (!isSystemInDarkTheme()) Color.Black else Color.White
+            text = "Back",
+            fontSize = 36.sp,
+            fontWeight = FontWeight.ExtraBold,
+            textAlign = TextAlign.Center,
+            color = if (!isSystemInDarkTheme()) Color.Black else Color.White
         )
-        Text(text = "Login to continue", fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,color =  if (!isSystemInDarkTheme()) Color.Black else Color.White)
+        Text(
+            text = "Login to continue",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (!isSystemInDarkTheme()) Color.Black else Color.White
+        )
     }
 }

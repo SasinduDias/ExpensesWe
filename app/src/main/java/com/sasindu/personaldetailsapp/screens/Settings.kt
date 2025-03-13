@@ -2,11 +2,14 @@ import android.content.Context
 import android.text.TextUtils
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +25,9 @@ import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,9 +41,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,31 +80,23 @@ fun SettingScreen(
     val coroutineScope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
 
-//    if (authState.value !is AuthState.Authenticated) {
-//        Box(modifier = Modifier.fillMaxSize()) {
-//            Image(
-//                painter = painterResource(R.drawable.background_four),
-//                contentDescription = "",
-//                contentScale = ContentScale.Crop,
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .blur(7.dp),
-//            )
-//        }
-//    }
+    if (authState.value !is AuthState.Authenticated) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+
+        }
+    }
     if (isLoading) {
-        SplashScreen(navController, authViewModel)
-//                    CircularProgressIndicator(
-//                        modifier = Modifier
-//                            .size(60.dp)
-//                            .padding(16.dp)
-//                            .graphicsLayer {
-//                                // Optional: Add rotation for effect
-//                                rotationZ = 45f
-//                            },
-//                        color = MaterialTheme.colorScheme.primary,
-//                        strokeWidth = 4.dp
-//                    )
+      //  SplashScreen(navController, authViewModel)
+
+        Column (modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally){
+            CircularProgressIndicator()
+        }
     } else {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,7 +150,7 @@ fun SettingScreen(
                 Text(
                     modifier = Modifier.paddingFromBaseline(top = 50.dp),
                     text = "Forgot Your Password?",
-                    color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+                    color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFE9762B),
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp
                 )
@@ -162,7 +161,8 @@ fun SettingScreen(
                     text = "Enter your email address and we will send you \n instructions to reset your password",
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(10.dp),
-                    fontSize = 18.sp
+                    fontSize = 18.sp,
+                    color = if (!isSystemInDarkTheme()) Color.Black else Color.White
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -181,7 +181,7 @@ fun SettingScreen(
                             contentDescription = "forget password mail"
                         )
                     },
-                    onValueChange = { selectedEmailAddress = it },
+                    onValueChange = { selectedEmailAddress = it.replace("\n", "") },
                     placeholder = { Text("Email") },
                     shape = RoundedCornerShape(15.dp)
                 )
@@ -287,7 +287,9 @@ fun SettingScreen(
                             text = "Back to the login screen",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF205781)
+                            color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(
+                                0xFFE9762B
+                            )
                         )
                     }
                 }
@@ -309,60 +311,9 @@ suspend fun deleteAccount(
 
     if (currentUser != null) {
         isLoading(true)
-        val db = FirebaseFirestore.getInstance()
-
-        db.collection("Expenses")
-            .whereEqualTo("email", currentUser.email) // Use currentUser.email directly
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-
-                if (!querySnapshot.isEmpty) {
-                    val batch = db.batch()
-
-                    for (document in querySnapshot.documents) {
-                        batch.delete(document.reference)
-                    }
-
-                    // Commit the batch operation to delete documents
-                    batch.commit()
-                        .addOnCompleteListener { commitTask ->
-                            if (commitTask.isSuccessful) {
-
-                                Toasty.success(
-                                    context,
-                                    "Account and related documents deleted successfully",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-
-                                // Proceed with logout and navigation
-                                deleteUserAccount(context, authViewModel, navController, isLoading)
-                            } else {
-                                isLoading(false)
-                                // Error committing batch delete
-                                Toasty.error(
-                                    context,
-                                    "Error deleting documents: ${commitTask.exception?.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                } else {
-                    // If no documents found, just delete the user account
-                    deleteUserAccount(context, authViewModel, navController, isLoading)
-                }
-            }
-            .addOnFailureListener { e ->
-                isLoading(false)
-                // If there's an error fetching documents
-                Toasty.error(
-                    context,
-                    "Error fetching expenses: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        deleteUserAccount(context, authViewModel, navController, isLoading)
     } else {
         isLoading(false)
-        // No user is logged in
         Toast.makeText(context, "No user is logged in", Toast.LENGTH_SHORT).show()
     }
 }
@@ -375,6 +326,7 @@ private fun deleteUserAccount(
 ) {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
+    val db = FirebaseFirestore.getInstance()
 
     currentUser?.delete()
         ?.addOnCompleteListener { task ->
@@ -389,6 +341,35 @@ private fun deleteUserAccount(
                 // Perform additional actions like logging out
                 authViewModel.removeAccount()
 
+                //remove documents
+                db.collection("Expenses")
+                    .whereEqualTo("email", currentUser.email) // Use currentUser.email directly
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+
+                        if (!querySnapshot.isEmpty) {
+                            val batch = db.batch()
+
+                            for (document in querySnapshot.documents) {
+                                batch.delete(document.reference)
+                            }
+
+                            // Commit the batch operation to delete documents
+                            batch.commit()
+                                .addOnCompleteListener { commitTask ->
+                                    if (commitTask.isSuccessful) {
+
+                                        Toasty.success(
+                                            context,
+                                            "Account and related documents deleted successfully",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                    }
+                                }
+                        }
+                    }
+
                 // Navigate to the sign-in screen
                 navController.navigate(MainActivity.Routes.SignIn.name)
             } else {
@@ -396,8 +377,8 @@ private fun deleteUserAccount(
                 // Error deleting account
                 Toasty.error(
                     context,
-                    "Error deleting account: ${task.exception?.message}",
-                    Toast.LENGTH_SHORT
+                    "This action requires recent authentication. Please log in again to proceed.",
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }
@@ -415,10 +396,18 @@ fun AlertDialogExample(
 ) {
     AlertDialog(
         icon = {
-            Icon(icon, contentDescription = "Example Icon")
+            Icon(
+                icon, contentDescription = "Example Icon",
+                tint = if (!isSystemInDarkTheme())
+                    Color(0xFF205781) else Color(0xFFE9762B)
+            )
         },
         title = {
-            Text(text = dialogTitle)
+            Text(
+                text = dialogTitle,
+                color = if (!isSystemInDarkTheme())
+                    Color(0xFF205781) else Color(0xFFE9762B)
+            )
         },
         text = {
             Text(text = dialogText)

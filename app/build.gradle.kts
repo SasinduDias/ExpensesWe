@@ -81,4 +81,5 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-drawablepainter:0.35.0-alpha")
     implementation("com.github.GrenderG:Toasty:1.5.2")
+
 }

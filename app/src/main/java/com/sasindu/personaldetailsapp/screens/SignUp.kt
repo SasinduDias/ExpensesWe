@@ -127,11 +127,11 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
                 SignUpFields(
                     email.value,
                     password.value,
-                    onEmailChanged = {
-                        email.value = it
+                    onEmailChanged = { input ->
+                        email.value = input.replace("\n", "")
                     },
-                    onPasswordChanged = {
-                        password.value = it
+                    onPasswordChanged = { input ->
+                        password.value = input.replace("\n", "") // Remove Enter key presses
                     },
 
                     )

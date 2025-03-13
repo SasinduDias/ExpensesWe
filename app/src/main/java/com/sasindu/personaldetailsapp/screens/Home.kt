@@ -33,27 +33,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.NoteAlt
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.NoteAlt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -66,7 +64,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -100,7 +97,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.DeleteAllCommand
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -120,6 +116,7 @@ import com.sasindu.personaldetailsapp.R
 import es.dmoral.toasty.Toasty
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
@@ -180,7 +177,10 @@ fun HomeContent(authViewModel: AuthViewModel) {
 
         //note image
         Image(
-            painter = painterResource(R.drawable.background_two),
+            painter = if (isSystemInDarkTheme())
+            painterResource(R.drawable.background_one)
+            else
+            painterResource(R.drawable.background_two)   ,
             contentDescription = "background image",
             modifier = Modifier
                 .fillMaxSize(),
@@ -480,6 +480,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     var summaryDialogDismiss by remember { mutableStateOf(false) }
     var openAlertDialogForRemoveDetails by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    var loading by remember { mutableStateOf(true) }
 
    if (!showSummary) {
        Column(
@@ -490,12 +491,22 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     ) {
         Text(
             "Expenses Summary",
-            color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+            color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFE9762B),
             fontFamily = FontFamily.SansSerif,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
+
+           if (loading) {
+               Column (modifier = Modifier.fillMaxSize(),
+                   verticalArrangement = Arrangement.Center,
+                   horizontalAlignment = Alignment.CenterHorizontally){
+                   CircularProgressIndicator()
+               }
+
+             //  SplashScreen(navController,authViewModel)
+           }
 
         val courseList = remember { mutableStateListOf<Expenses?>() }
         val context = LocalContext.current
@@ -527,7 +538,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
 
         }
         if (!courseList.isEmpty()) {
-
+            loading=false
             //chart selected buttons
             Row(
                 modifier = Modifier
@@ -544,7 +555,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                         true -> Icon(
                             imageVector = Icons.Filled.BarChart,
                             contentDescription = "Bar Chart",
-                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFDD88CF)
+                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
                         )
 
                         else -> Icon(
@@ -572,7 +583,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                         else -> Icon(
                             imageVector = Icons.Filled.PieChart,
                             contentDescription = "Pie Chart",
-                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFDD88CF)
+                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
                         )
                     }
 
@@ -586,7 +597,7 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Summarize,
+                        imageVector = Icons.Default.Calculate,
                         contentDescription = "info summary",
                         tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                     )
@@ -631,12 +642,14 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
                 true -> SetupBarChart(courseList)
                 else -> SetupGraphs(courseList)
             }
-            firebaseUI(LocalContext.current, courseList)
+            FirebaseUI(LocalContext.current, courseList)
         }
-    }}else{
+    }
+   }else{
         OpenDialog(
             authViewModel,
-            onDismiss ={summaryDialogDismiss=false})
+            onDismiss ={summaryDialogDismiss=false},
+            navController)
 
    }
 
@@ -677,9 +690,11 @@ fun SetupGraphs(courseList: SnapshotStateList<Expenses?>) {
 
 
 @Composable
-fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
+fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
     val coroutineScope = rememberCoroutineScope()
     var openAlertDialog by remember { mutableStateOf(false) }
+    var selectedItem by remember { mutableStateOf<Expenses?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -689,12 +704,8 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
     ) {
 
         LazyColumn {
-            itemsIndexed(courseList) { index, item ->
+            itemsIndexed(courseList) { _, item ->
                 Card(
-                    onClick = {
-
-                    },
-
                     modifier = Modifier.padding(8.dp),
                 ) {
                     Column(
@@ -703,14 +714,12 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             .fillMaxWidth()
                     ) {
 
-                        courseList[index]?.description?.let {
-
+                        item?.description?.let {
                             Row(
                                 modifier = Modifier.fillMaxSize(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-
                                 Row(
                                     modifier = Modifier.wrapContentWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -720,7 +729,8 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     Text(
                                         text = it,
                                         modifier = Modifier.padding(4.dp),
-                                        color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+                                        color =  if (!isSystemInDarkTheme())
+                                            Color(0xFF205781) else Color(0xFFE9762B),
                                         textAlign = TextAlign.Center,
                                         style = TextStyle(
                                             fontSize = 20.sp, fontWeight = FontWeight.Bold
@@ -728,7 +738,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     )
 
                                     Image(
-                                        painter = findDrawable(courseList[index]?.category),
+                                        painter = findDrawable(item.category),
                                         contentDescription = "",
                                         modifier = Modifier
                                             .height(25.dp)
@@ -739,6 +749,7 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
 
                                 IconButton(
                                     onClick = {
+                                        selectedItem=item
                                         openAlertDialog = true
                                     },
                                 )
@@ -754,12 +765,11 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                             onDismissRequest = { openAlertDialog = false },
                                             onConfirmation = {
                                                 openAlertDialog = false
-                                                coroutineScope.launch {
-                                                    DeleteItem(
-                                                        courseList,
-                                                        courseList[index],
-                                                        context
-                                                    )
+
+                                                selectedItem?.let { expense ->
+                                                    coroutineScope.launch {
+                                                        DeleteItem(courseList, expense, context) // Remove by item reference
+                                                    }
                                                 }
                                             },
                                             dialogTitle = "Warning",
@@ -780,14 +790,14 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Category - ",
                                 modifier = Modifier.padding(4.dp),
-                                color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+                                color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
                                 )
                             )
 
-                            courseList[index]?.category?.let {
+                            item?.category?.let {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
@@ -810,14 +820,14 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Amount - ",
                                 modifier = Modifier.padding(4.dp),
-                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
                                 )
                             )
 
-                            courseList[index]?.amount?.let {
+                            item?.amount?.let {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
@@ -838,14 +848,14 @@ fun firebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Date - ",
                                 modifier = Modifier.padding(4.dp),
-                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFDD88CF),
+                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
                                 )
                             )
 
-                            courseList[index]?.date?.let {
+                            item?.date?.let {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
@@ -1209,7 +1219,6 @@ fun SetupBarChart(courseList: SnapshotStateList<Expenses?>) {
         textColor = MaterialTheme.colorScheme.primary
     )
 }
-
 
 @Preview(showBackground = true)
 @Composable
