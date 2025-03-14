@@ -11,4 +11,5 @@ Screens
 
 User can calculate their monthly expenses and view summary.
 Light and dark mode support
+App Release 2025/03/14
    
