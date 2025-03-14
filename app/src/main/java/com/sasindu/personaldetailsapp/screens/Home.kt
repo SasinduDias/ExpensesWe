@@ -257,7 +257,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
                 } else if (TextUtils.isEmpty(expenseAmount)) {
                     Toasty.warning(
                         contextHome,
-                        "FPlease enter expense amount !",
+                        "Please enter expense amount !",
                         Toast.LENGTH_SHORT,
                         true
                     ).show()
