@@ -1,4 +1,4 @@
-Expenses Manager App
+Expenses Manager App (ExpenseWe)
 Language = Kotlin / Jetpack compose
 Firebase authentication
 
