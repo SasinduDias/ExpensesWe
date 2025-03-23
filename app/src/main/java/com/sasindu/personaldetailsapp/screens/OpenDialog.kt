@@ -1,3 +1,4 @@
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.widget.DatePicker
 import androidx.compose.foundation.Image
@@ -236,6 +237,7 @@ fun OpenDialog(
 }
 
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun CallCategoryExpensesLazyColumn(
     monthlyIncome: String,
@@ -244,6 +246,7 @@ fun CallCategoryExpensesLazyColumn(
     endDate: String
 ) {
 
+    val numberRegex = Regex("^[0-9]+(\\.[0-9]+)?$")
     val startLocalDate = parseDate(startDate)
     val endLocalDate = parseDate(endDate)
 
@@ -262,7 +265,7 @@ fun CallCategoryExpensesLazyColumn(
 
 
     val categorySumMap = filteredExpenses.filterNotNull().groupBy { it.category }.mapValues { entry ->
-        entry.value.sumOf { it.amount.toInt() }
+        entry.value.sumOf { it.amount.toDouble() }
     }
 
     val chartValues: List<Float> = categorySumMap.values.map { it.toFloat() }
@@ -281,7 +284,8 @@ fun CallCategoryExpensesLazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+        if (monthlyIncome.isNotEmpty()
+            && monthlyIncome.matches(numberRegex)
             && (monthlyIncome.toFloat() > totalExpenses)
         ) {
             Row(
@@ -291,13 +295,14 @@ fun CallCategoryExpensesLazyColumn(
                 , color =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                     fontWeight = FontWeight.Bold)
                 Text(
-                    text = (monthlyIncome.toFloat() - totalExpenses).toString(),
+                    text = String.format("%.2f", monthlyIncome.toDouble() - totalExpenses),
                     color = Color(0xFF0b7826),
                     fontWeight = FontWeight.Bold
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-        } else if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+        } else if (monthlyIncome.isNotEmpty()
+            && monthlyIncome.matches(numberRegex)
             && (monthlyIncome.toFloat() < totalExpenses)
         ) {
             Row(
@@ -307,13 +312,14 @@ fun CallCategoryExpensesLazyColumn(
                     color =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                     fontWeight = FontWeight.Bold)
                 Text(
-                    text = (totalExpenses - monthlyIncome.toFloat()).toString(),
+                    text = String.format("%.2f",totalExpenses- monthlyIncome.toDouble()),
                     color = Color.Red,
                     fontWeight = FontWeight.Bold
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-        } else if (monthlyIncome.isNotEmpty() && monthlyIncome != "."
+        } else if (monthlyIncome.isNotEmpty()
+            && monthlyIncome.matches(numberRegex)
             && (monthlyIncome.toFloat() == totalExpenses)
         ) {
             Row(

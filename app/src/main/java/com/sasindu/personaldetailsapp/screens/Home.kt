@@ -153,7 +153,7 @@ fun HomeScreen(
         ) {
             when (selectedItem) {
                 0 -> HomeContent(authViewModel)
-                1 -> SummaryContent(authViewModel,navController)
+                1 -> SummaryContent(authViewModel, navController)
                 2 -> SettingContent(authViewModel, navController)
             }
         }
@@ -167,6 +167,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
     var selectedDateText by rememberSaveable { mutableStateOf("") }
     var selectedCategoryText by rememberSaveable { mutableStateOf("") }
     val contextHome = LocalContext.current
+    val numberRegex = Regex("^[0-9]+(\\.[0-9]+)?$")
 
     Column(
         modifier = Modifier
@@ -178,9 +179,9 @@ fun HomeContent(authViewModel: AuthViewModel) {
         //note image
         Image(
             painter = if (isSystemInDarkTheme())
-            painterResource(R.drawable.background_one)
+                painterResource(R.drawable.background_one)
             else
-            painterResource(R.drawable.background_two),
+                painterResource(R.drawable.background_two),
             contentDescription = "background image",
             modifier = Modifier
                 .fillMaxSize(),
@@ -272,14 +273,19 @@ fun HomeContent(authViewModel: AuthViewModel) {
                         true
                     ).show()
 
+                } else if (expenseAmount.isEmpty() || !expenseAmount.matches(numberRegex)) {
+                    Toasty.warning(
+                        contextHome,
+                        "Please enter valid expense amount !",
+                        Toast.LENGTH_SHORT,
+                        true
+                    ).show()
                 } else {
-                    // on below line adding data to
-                    // firebase firestore database.
                     addDataToFirebase(
                         expenseName,
                         expenseAmount,
                         selectedDateText,
-                         selectedCategoryText,
+                        selectedCategoryText,
                         contextHome,
                         authViewModel
                     ) {
@@ -295,7 +301,7 @@ fun HomeContent(authViewModel: AuthViewModel) {
             // adding modifier to button.
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top= 16.dp),
+                .padding(top = 16.dp),
             shape = RoundedCornerShape(15.dp)
 
         ) {
@@ -365,12 +371,12 @@ fun DatePickerFieldToModal(
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var showModal by remember { mutableStateOf(false) }
 
-   LaunchedEffect(resetSelectedDate) {
-       if (resetSelectedDate){
-           selectedDate=null
-           onDateTextChange("")
-       }
-   }
+    LaunchedEffect(resetSelectedDate) {
+        if (resetSelectedDate) {
+            selectedDate = null
+            onDateTextChange("")
+        }
+    }
 
     OutlinedTextField(
         value = selectedDate?.let { convertMillisToDate(it) } ?: selectedDateText,
@@ -392,14 +398,16 @@ fun DatePickerFieldToModal(
                     }
                 }
             },
-                shape = RoundedCornerShape(15.dp)
+        shape = RoundedCornerShape(15.dp)
     )
 
     if (showModal) {
         DatePickerModal(
             onDateSelected = { millis ->
                 selectedDate = millis
-                onDateTextChange(convertMillisToDate(millis!!))
+                if (millis != null) {
+                    onDateTextChange(convertMillisToDate(millis))
+                }
                 showModal = false
             },
             onDismiss = { showModal = false }
@@ -482,176 +490,181 @@ fun SummaryContent(authViewModel: AuthViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(true) }
 
-   if (!showSummary) {
-       Column(
-        modifier = Modifier
-            .padding(16.dp, 16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            "Expenses Summary",
-            color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFE9762B),
-            fontFamily = FontFamily.SansSerif,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+    if (!showSummary) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp, 16.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Expenses Summary",
+                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color(0xFFE9762B),
+                fontFamily = FontFamily.SansSerif,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
 
-           if (loading) {
-               Column (modifier = Modifier.fillMaxSize(),
-                   verticalArrangement = Arrangement.Center,
-                   horizontalAlignment = Alignment.CenterHorizontally){
-                   CircularProgressIndicator()
-               }
+            if (loading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                }
 
-             //  SplashScreen(navController,authViewModel)
-           }
+                //  SplashScreen(navController,authViewModel)
+            }
 
-        val courseList = remember { mutableStateListOf<Expenses?>() }
-        val context = LocalContext.current
+            val courseList = remember { mutableStateListOf<Expenses?>() }
+            val context = LocalContext.current
 
-        LaunchedEffect(Unit) {
-            val db = FirebaseFirestore.getInstance()
+            LaunchedEffect(Unit) {
+                val db = FirebaseFirestore.getInstance()
 
-            db.collection("Expenses")
-                .whereEqualTo("email", authViewModelForUser.firebaseUser?.email.toString())
-                .get()
-                .addOnSuccessListener { queryDocumentSnapshots ->
-                    if (!queryDocumentSnapshots.isEmpty) {
-                        val list = queryDocumentSnapshots.documents
-                        courseList.clear()
-                        for (d in list) {
-                            val expense: Expenses? = d.toObject(Expenses::class.java)
-                            expense?.let { courseList.add(it) }
+                db.collection("Expenses")
+                    .whereEqualTo("email", authViewModelForUser.firebaseUser?.email.toString())
+                    .get()
+                    .addOnSuccessListener { queryDocumentSnapshots ->
+                        if (!queryDocumentSnapshots.isEmpty) {
+                            val list = queryDocumentSnapshots.documents
+                            courseList.clear()
+                            for (d in list) {
+                                val expense: Expenses? = d.toObject(Expenses::class.java)
+                                expense?.let { courseList.add(it) }
+                            }
+                        } else {
+                            Toasty.warning(context, "No data found !", Toast.LENGTH_SHORT, true)
+                                .show()
                         }
-                    } else {
-                        Toasty.warning(context, "No data found !", Toast.LENGTH_SHORT, true).show()
                     }
-                }
-                .addOnFailureListener { e ->
-                    Toasty.error(context, "Failed to get data !", Toast.LENGTH_SHORT, true).show()
-                }
-        }
-
-        LaunchedEffect(barChartSelected, courseList) {
-
-        }
-        if (!courseList.isEmpty()) {
-            loading=false
-            //chart selected buttons
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                IconButton(
-                    onClick = {
-                        barChartSelected = true
+                    .addOnFailureListener { e ->
+                        Toasty.error(context, "Failed to get data !", Toast.LENGTH_SHORT, true)
+                            .show()
                     }
-                ) {
-                    when (barChartSelected) {
-                        true -> Icon(
-                            imageVector = Icons.Filled.BarChart,
-                            contentDescription = "Bar Chart",
-                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
-                        )
-
-                        else -> Icon(
-                            imageVector = Icons.Default.BarChart,
-                            contentDescription = "Bar Chart",
-                            tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
-                        )
-                    }
-                }
-
-                Spacer(Modifier.width(10.dp))
-
-                IconButton(
-                    onClick = {
-                        barChartSelected = false
-                    }
-                ) {
-                    when (barChartSelected) {
-                        true -> Icon(
-                            imageVector = Icons.Default.PieChart,
-                            contentDescription = "Pie Chart",
-                            tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
-                        )
-
-                        else -> Icon(
-                            imageVector = Icons.Filled.PieChart,
-                            contentDescription = "Pie Chart",
-                            tint =if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
-                        )
-                    }
-
-                }
-                Spacer(Modifier.width(10.dp))
-
-                IconButton(
-                    onClick = {
-                        showSummary=true
-                     //   navController.navigate(MainActivity.Routes.OpenDialog.name)
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Calculate,
-                        contentDescription = "info summary",
-                        tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                IconButton(
-                    onClick = {
-                        openAlertDialogForRemoveDetails = true
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteForever,
-                        contentDescription = "remove",
-                        tint =if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
-                    )
-
-                    if (openAlertDialogForRemoveDetails) {
-                        AlertDialogExample(
-                            onDismissRequest = { openAlertDialogForRemoveDetails = false },
-                            onConfirmation = {
-                                openAlertDialogForRemoveDetails = false
-                                coroutineScope.launch {
-                                    deleteAllExpenses(
-                                        courseList,
-                                        context
-                                    )
-                                }
-                            },
-                            dialogTitle = "Warning",
-                            dialogText = "This will permanently delete all items. Are you sure you want to continue?",
-                            icon = Icons.Default.Warning
-                        )
-                    }
-                }
             }
 
+            LaunchedEffect(barChartSelected, courseList) {
 
-
-            when (barChartSelected) {
-                true -> SetupBarChart(courseList)
-                else -> SetupGraphs(courseList)
             }
-            FirebaseUI(LocalContext.current, courseList)
+            if (!courseList.isEmpty()) {
+                loading = false
+                //chart selected buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    IconButton(
+                        onClick = {
+                            barChartSelected = true
+                        }
+                    ) {
+                        when (barChartSelected) {
+                            true -> Icon(
+                                imageVector = Icons.Filled.BarChart,
+                                contentDescription = "Bar Chart",
+                                tint = if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
+                            )
+
+                            else -> Icon(
+                                imageVector = Icons.Default.BarChart,
+                                contentDescription = "Bar Chart",
+                                tint = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.width(10.dp))
+
+                    IconButton(
+                        onClick = {
+                            barChartSelected = false
+                        }
+                    ) {
+                        when (barChartSelected) {
+                            true -> Icon(
+                                imageVector = Icons.Default.PieChart,
+                                contentDescription = "Pie Chart",
+                                tint = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
+                            )
+
+                            else -> Icon(
+                                imageVector = Icons.Filled.PieChart,
+                                contentDescription = "Pie Chart",
+                                tint = if (!isSystemInDarkTheme()) Color.Blue else Color(0xFFE9762B)
+                            )
+                        }
+
+                    }
+                    Spacer(Modifier.width(10.dp))
+
+                    IconButton(
+                        onClick = {
+                            showSummary = true
+                            //   navController.navigate(MainActivity.Routes.OpenDialog.name)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Calculate,
+                            contentDescription = "info summary",
+                            tint = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    IconButton(
+                        onClick = {
+                            openAlertDialogForRemoveDetails = true
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = "remove",
+                            tint = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
+                        )
+
+                        if (openAlertDialogForRemoveDetails) {
+                            AlertDialogExample(
+                                onDismissRequest = { openAlertDialogForRemoveDetails = false },
+                                onConfirmation = {
+                                    openAlertDialogForRemoveDetails = false
+                                    coroutineScope.launch {
+                                        deleteAllExpenses(
+                                            courseList,
+                                            context
+                                        )
+                                    }
+                                },
+                                dialogTitle = "Warning",
+                                dialogText = "This will permanently delete all items. Are you sure you want to continue?",
+                                icon = Icons.Default.Warning
+                            )
+                        }
+                    }
+                }
+
+
+
+                when (barChartSelected) {
+                    true -> SetupBarChart(courseList)
+                    else -> SetupGraphs(courseList)
+                }
+                FirebaseUI(LocalContext.current, courseList)
+            }
         }
-    }
-   }else{
+    } else {
         OpenDialog(
             authViewModel,
-            onDismiss ={summaryDialogDismiss=false},
-            navController)
+            onDismiss = { summaryDialogDismiss = false },
+            navController
+        )
 
-   }
+    }
 
 }
 
@@ -673,7 +686,7 @@ fun SetupGraphs(courseList: SnapshotStateList<Expenses?>) {
     )
 
     val categorySumMap = courseList.filterNotNull().groupBy { it.category }.mapValues { entry ->
-        entry.value.sumOf { it.amount.toInt() }
+        entry.value.sumOf { it.amount.toDouble() }
     }
 
     val chartValues: List<Int> = categorySumMap.values.map { it.toInt() }
@@ -729,7 +742,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     Text(
                                         text = it,
                                         modifier = Modifier.padding(4.dp),
-                                        color =  if (!isSystemInDarkTheme())
+                                        color = if (!isSystemInDarkTheme())
                                             Color(0xFF205781) else Color(0xFFE9762B),
                                         textAlign = TextAlign.Center,
                                         style = TextStyle(
@@ -749,7 +762,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
 
                                 IconButton(
                                     onClick = {
-                                        selectedItem=item
+                                        selectedItem = item
                                         openAlertDialog = true
                                     },
                                 )
@@ -757,7 +770,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Delete",
-                                        tint =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
+                                        tint = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White
                                     )
 
                                     if (openAlertDialog) {
@@ -768,7 +781,11 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
 
                                                 selectedItem?.let { expense ->
                                                     coroutineScope.launch {
-                                                        DeleteItem(courseList, expense, context) // Remove by item reference
+                                                        DeleteItem(
+                                                            courseList,
+                                                            expense,
+                                                            context
+                                                        ) // Remove by item reference
                                                     }
                                                 }
                                             },
@@ -790,7 +807,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                             Text(
                                 text = "Expense Category - ",
                                 modifier = Modifier.padding(4.dp),
-                                color =  if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
+                                color = if (!isSystemInDarkTheme()) Color(0xFF205781) else Color.White,
                                 textAlign = TextAlign.Center,
                                 style = TextStyle(
                                     fontSize = 15.sp
@@ -831,7 +848,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color =  if (!isSystemInDarkTheme()) Color.Black else Color.White,
+                                    color = if (!isSystemInDarkTheme()) Color.Black else Color.White,
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(fontSize = 15.sp)
@@ -859,7 +876,7 @@ fun FirebaseUI(context: Context, courseList: SnapshotStateList<Expenses?>) {
                                 Text(
                                     text = it,
                                     modifier = Modifier.padding(4.dp),
-                                    color =  if (!isSystemInDarkTheme()) Color.Black else Color.White,
+                                    color = if (!isSystemInDarkTheme()) Color.Black else Color.White,
                                     textAlign = TextAlign.Center,
                                     fontWeight = FontWeight.Bold,
                                     style = TextStyle(fontSize = 15.sp)
@@ -937,7 +954,10 @@ suspend fun deleteAllExpenses(
     val db = FirebaseFirestore.getInstance()
 
     db.collection("Expenses")
-        .whereEqualTo("email", AuthViewModel().firebaseUser?.email.toString()) // Delete only the logged-in user's expenses
+        .whereEqualTo(
+            "email",
+            AuthViewModel().firebaseUser?.email.toString()
+        ) // Delete only the logged-in user's expenses
         .get()
         .addOnSuccessListener { querySnapshot ->
             if (!querySnapshot.isEmpty) {
@@ -949,7 +969,11 @@ suspend fun deleteAllExpenses(
 
                 batch.commit()
                     .addOnSuccessListener {
-                        Toasty.success(context, "All expenses deleted successfully!", Toast.LENGTH_SHORT).show()
+                        Toasty.success(
+                            context,
+                            "All expenses deleted successfully!",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
                         // Clear the local list
                         courseList.clear()
@@ -1205,7 +1229,7 @@ fun SetupBarChart(courseList: SnapshotStateList<Expenses?>) {
     )
 
     val categorySumMap = courseList.filterNotNull().groupBy { it.category }.mapValues { entry ->
-        entry.value.sumOf { it.amount.toInt() }
+        entry.value.sumOf { it.amount.toDouble() }
     }
 
     val chartValues: List<Float> = categorySumMap.values.map { it.toFloat() }
